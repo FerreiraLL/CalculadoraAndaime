@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CALCULADORA DE CAPACIDADE DE CARGA PARA ANDAIMES EM TUBO ROLL</title>
+  <style>
+    :root{font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color-scheme:dark;}
+    body{margin:0; background:#0b1220; color:#e6eef8; padding:24px; display:flex; justify-content:center;}
+    .wrap{max-width:1100px; width:100%;}
+    .card{
+      background:linear-gradient(180deg,#0b1220 0%, #071019 100%);
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:18px; padding:20px 20px 24px; box-shadow:0 10px 30px rgba(2,6,23,.65);
+    }
+    h1{margin:0 0 10px; text-align:center; text-transform:uppercase; font-size:18px; letter-spacing:.02em; line-height:1.25;}
+    h3{
+      margin:18px 0 10px; font-size:15px; color:#f1f5f9;
+      border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:4px;
+      text-transform:uppercase;
+    }
+    .grid2,.grid3{display:grid; gap:14px; align-items:end;}
+    .grid2{grid-template-columns:repeat(2,1fr);}
+    .grid3{grid-template-columns:repeat(3,1fr);}
+    label{display:block; font-size:12px; color:#cbd5f5; margin-bottom:4px;}
+    input{
+      width:100%; box-sizing:border-box; padding:8px 9px; border-radius:8px;
+      border:1px solid rgba(148,163,184,.45); background:#020617; color:#e2e8f0; font-size:13px;
+    }
+    input:focus{outline:none; border-color:#38bdf8; box-shadow:0 0 0 1px rgba(56,189,248,.25);}
+    .infoBox{
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(2,6,23,.35);
+      border-radius:12px;
+      padding:12px 12px;
+      color:#cbd5f5;
+      font-size:12.5px;
+      line-height:1.45;
+    }
+    .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;}
+    button{
+      border:none; cursor:pointer; padding:9px 18px; border-radius:999px; font-weight:800;
+      background:linear-gradient(135deg,#38bdf8,#6366f1); color:white; letter-spacing:.03em;
+      box-shadow:0 10px 18px rgba(37,99,235,.35); text-transform:uppercase; font-size:12.5px;
+    }
+    .result{
+      margin-top:18px; background:#020617; border:1px solid rgba(148,163,184,.35);
+      border-radius:12px; padding:14px 14px; max-height:720px; overflow:auto;
+    }
+    pre{margin:0; white-space:pre-wrap; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.2px; line-height:1.35;}
+    @media (max-width:900px){ .grid3,.grid2{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>CALCULADORA DE CAPACIDADE DE CARGA PARA ANDAIMES EM TUBO ROLL</h1>
+
+      <h3>DADOS DE ENTRADA</h3>
+
+      <div class="grid2">
+        <div>
+          <label>Comprimento Efetivo do Pontalete Mais Desfavorecido [m]</label>
+          <input id="Cp" type="number" step="0.01" value="2.00"/>
+        </div>
+        <div>
+          <label>Quantidade de Pontaletes</label>
+          <input id="Np" type="number" step="1" value="4"/>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <label>Comprimento Efetivo da Longarina Mais Desfavorecida [m]</label>
+          <input id="Cl" type="number" step="0.01" value="2.00"/>
+        </div>
+        <div>
+          <label>Quantidade de Longarinas</label>
+          <input id="Nl" type="number" step="1" value="4"/>
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:14px">
+        <div>
+          <label>Quantidade de Abraçadeiras Sob Carga</label>
+          <input id="Na" type="number" step="1" value="4"/>
+        </div>
+        <div>
+          <label>Área efetiva do Tablado [m²]</label>
+          <input id="At" type="number" step="0.01" value="4.00"/>
+        </div>
+        <div>
+          <label>Fator de Segurança do Projeto</label>
+          <input id="fs" type="number" step="0.01" value="0.85"/>
+        </div>
+      </div>
+
+      <h3 style="margin-top:22px">DADOS DE CÁLCULOS INTERNOS</h3>
+      <div class="infoBox">
+        Pranchão de Madeira com Espessura Mínima de 25mm<br/>
+        Tubo Roll de 1.1/2" em Aço Galvanizado SAE 1020<br/>
+        (D) Diâmetro Externo do Tubo: 48,3 mm<br/>
+        (d) Diâmetro Interno do Tubo: 42,3 mm<br/>
+        (e) Espessura do Tubo: 3,0 mm<br/>
+        (E) Módulo de Elasticidade do Aço 1020: 210.000 MPa<br/>
+        (fy) Limite de Escoamento do Aço 1020: 285 MPa
+      </div>
+
+      <div class="actions">
+        <button id="calc">Calcular</button>
+      </div>
+
+      <div class="result" id="out" style="display:none">
+        <pre id="txt"></pre>
+      </div>
+    </div>
+  </div>
+
+<script>
+function n(v){ const x = parseFloat(v); return isFinite(x)?x:0; }
+function ni(v){ const x = parseInt(v,10); return isFinite(x)?x:0; }
+function fmt(x,dec=2){
+  if(!isFinite(x)) return '-';
+  return Number(x).toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+function fmt0(x){ return fmt(x,0); }
+function round2(x){ return Math.round(x*100)/100; }
+const MPa_to_kgfcm2 = 10.197162129779;
+
+// Constantes internas (travadas)
+const D = 48.30;       // mm
+const d = 42.30;       // mm
+const E_MPa = 210000;  // MPa
+const fy_MPa = 285;    // MPa
+const Pab = 750;       // kgf
+const Ppm = 175;       // kgf/m²
+const delta_factor = 0.005; // δmax = L * 0,005
+
+document.getElementById('calc').addEventListener('click', ()=>{
+  const Cp = n(document.getElementById('Cp').value);
+  const Np = Math.max(1, ni(document.getElementById('Np').value));
+  const Cl = n(document.getElementById('Cl').value);
+  const Nl = Math.max(1, ni(document.getElementById('Nl').value));
+  const Na = Math.max(0, ni(document.getElementById('Na').value));
+  const At = n(document.getElementById('At').value);
+  const fs = n(document.getElementById('fs').value);
+
+  // 1) Propriedades geométricas (alta precisão a partir de D/d)
+  const A_mm2_raw = Math.PI/4 * (D*D - d*d);
+  const I_mm4_raw = Math.PI/64 * (Math.pow(D,4) - Math.pow(d,4));
+  const W_mm3_raw = I_mm4_raw / (D/2);
+  const r_mm_raw  = Math.sqrt(I_mm4_raw / A_mm2_raw);
+
+  // "Modo memorial": converte e arredonda A, I, W, r para 2 casas e USA nos próximos passos
+  const A_cm2 = round2(A_mm2_raw/100.0);
+  const I_cm4 = round2(I_mm4_raw/1e4);
+  const W_cm3 = round2(W_mm3_raw/1e3);
+  const r_mm  = round2(r_mm_raw);
+
+  // Materiais em kgf/cm² (estilo memorial)
+  const fy_kgfcm2 = Math.round(fy_MPa * MPa_to_kgfcm2); // ~2850
+  const E_kgfcm2  = Math.round(E_MPa  * MPa_to_kgfcm2); // ~2.100.000
+
+  // 2) Pontaletes
+  const lambda = round2((Cp*1000.0) / r_mm);
+  const lambda0 = round2((lambda/Math.PI) * Math.sqrt(fy_MPa/E_MPa));
+  const chi = round2(Math.pow(0.658, lambda0*lambda0));
+
+  const Ppu_kgf = A_cm2 * fy_kgfcm2 * chi * fs;
+  const Ppt_kgf = Ppu_kgf * Np * fs;
+
+  // 3) Longarinas
+  const L_cm = Cl * 100.0;
+
+  const Madm = W_cm3 * fy_kgfcm2 * fs;
+  const Plmfu_kgf = (4 * Madm) / Math.max(1e-9, L_cm);
+  const Plmft_kgf = Plmfu_kgf * Nl * fs;
+
+  const delta_max_cm = L_cm * delta_factor;
+  const Plflu_kgf = (48 * E_kgfcm2 * I_cm4 * delta_max_cm / Math.max(1e-9, Math.pow(L_cm,3))) * fs;
+  const Plflt_kgf = Plflu_kgf * Nl * fs;
+
+  const Plt_kgf = Math.min(Plmft_kgf, Plflt_kgf);
+
+  // 4) Abraçadeiras
+  const Pabt_kgf = Pab * Na * fs;
+
+  // 5) Piso
+  const Pt_kgf = Ppm * At * fs;
+
+  const Cmax = Math.min(Ppt_kgf, Plt_kgf, Pabt_kgf, Pt_kgf);
+
+  let out = `Tipologia:\n`;
+  out += `Pranchão de Madeira com Espessura Mínima de 25mm\n`;
+  out += `Tubo Roll de 1.1/2\" em Aço Galvanizado SAE 1020\n\n`;
+
+  out += `Dados e Cálculos:\n\n`;
+
+  out += `(D) Diâmetro Externo do Tubo: ${fmt(D,1)} mm\n`;
+  out += `(d) Diâmetro Interno do Tubo: ${fmt(d,1)} mm\n`;
+  out += `(e) Espessura do Tubo: ${fmt((D-d)/2,1)} mm\n`;
+  out += `(E) Módulo de Elasticidade do Aço 1020: ${fmt0(E_MPa)} MPa\n`;
+  out += `(fy) Limite de Escoamento do Aço 1020: ${fmt0(fy_MPa)} MPa\n`;
+  out += `(fs) Fator de Segurança do Projeto: ${fmt(fs,2)}\n\n`;
+
+  out += `(A) Área de Secção Transversal ((π/4)*(D^2-d^2)): ${fmt(A_cm2,2)} cm²\n`;
+  out += `(I) Momento de Inércia ((π/64)*(D^4−d^4)): ${fmt(I_cm4,2)} cm4\n`;
+  out += `(W) Módulo de Resistência Elástico ((π/32*D)*(D^4−d^4)): ${fmt(W_cm3,2)} cm³\n`;
+  out += `(r) Raio de Giração ((√(D^2+d^2))/4): ${fmt(r_mm,2)}mm\n\n`;
+
+  out += `Carga Admissível nos Pontaletes (Compressão/Flambagem)\n`;
+  out += `(Cp) Comprimento Efetivo do Pontalete Mais Desfavorecido: ${fmt(Cp,2)} m\n`;
+  out += `(Np) Quantidade de Pontaletes: ${fmt0(Np)}\n`;
+  out += `(λ) Esbeltez (Cp/r): ${fmt(lambda,2)}\n`;
+  out += `(λ0) Esbeltez Reduzida ((λ/π)*(√(fy/E))): ${fmt(lambda0,2)}\n`;
+  out += `(χ) Fator de Redução por Flambagem (0,658^(λ0^2): ${fmt(chi,2)}\n`;
+  out += `(Ppu) Carga Admissível no Pontalete Unitário (A*fy*χ*fs): ${fmt0(Ppu_kgf)} kgf\n`;
+  out += `(Ppt) Carga Admissível no Pontalete Total (Ppu*Np*fs): ${fmt0(Ppt_kgf)} kgf\n\n`;
+
+  out += `Carga Admissível nas Longarinas (Cisalhamento/Flecha)\n`;
+  out += `(Cl) Comprimento Efetivo da Longarina Mais Desfavorecida: ${fmt(Cl,2)} m\n`;
+  out += `(Nl) Quantidade de Longarinas: ${fmt0(Nl)}\n`;
+  out += `(Plmfu) Carga Admissível na Longarina por Momento Fletor Unitário ((1/Cl)*4*W*fy*fs): ${fmt0(Plmfu_kgf)} kgf\n`;
+  out += `(Plmft) Carga Admissível na Longarina por Momento Fletor Total (Plmfu*Nl*fs): ${fmt0(Plmft_kgf)} kgf\n`;
+  out += `(Plflu) Carga Admissível na Longarina por Flexa Limite Unitária ((1/Cl^3)*48*E*I*0,005*fs): ${fmt0(Plflu_kgf)} kgf\n`;
+  out += `(Plflt) Carga Admissível na Longarina por Flexa Limite Total (Plflu*Nl*fs): ${fmt0(Plflt_kgf)} kgf\n\n`;
+
+  out += `Carga Admissível nas Abraçadeiras\n`;
+  out += `(Pab) Carga Admissível das Abraçadeiras Unitária: ${fmt0(Pab)} kgf\n`;
+  out += `(Na) Quantidade de Abraçadeiras Sob Carga: ${fmt0(Na)}\n`;
+  out += `(Pabt) Carga Admissível das Abraçadeiras Total (Pab*Na*fs): ${fmt0(Pabt_kgf)} kgf\n\n`;
+
+  out += `Carga Admissível no Tablado\n`;
+  out += `(Ppm) Carga Admissível dos Pranchões: ${fmt0(Ppm)} kgf/m²\n`;
+  out += `(At) Área efetiva do Tablado: ${fmt(At,2)} m²\n`;
+  out += `(Pt) Carga Admissível no Tablado (Ppm*At*fs): ${fmt0(Pt_kgf)} kgf\n\n`;
+
+  out += `CARGA MÁXIMA DE TRABALHO POR TABLADO: ${fmt0(Cmax)} kgf\n`;
+  out += `LOTAÇÃO MÁXIMA POR TABLADO: 02 PESSOAS\n\n`;
+
+  out += `Estritamente proibido extrapolar a carga máxima de trabalho definida em projeto\n`;
+  out += `Esta informação deve estar clara para todos os colaboradores envolvidos nas atividades de uso do andaime\n`;
+  out += `Nenhum profissional tem autonomia para mudar este limite, salvo o projetista responsável pelo projeto\n`;
+
+  document.getElementById('txt').textContent = out;
+  document.getElementById('out').style.display='block';
+});
+</script>
+</body>
+</html>
