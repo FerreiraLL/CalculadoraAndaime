@@ -4,119 +4,260 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>CALCULADORA DE CAPACIDADE DE CARGA PARA ANDAIMES EM TUBO ROLL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>try{var t=localStorage.getItem('andaime-tema');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
   <style>
-    :root{font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color-scheme:dark;}
-    body{margin:0; background:#0b1220; color:#e6eef8; padding:24px; display:flex; justify-content:center;}
-    .wrap{max-width:1100px; width:100%;}
-    .card{
-      background:linear-gradient(180deg,#0b1220 0%, #071019 100%);
-      border:1px solid rgba(148,163,184,.22);
-      border-radius:18px; padding:20px 20px 24px; box-shadow:0 10px 30px rgba(2,6,23,.65);
+    :root{
+      --bg:#141718; --panel:#1d2122; --panel-raised:#252b2c; --panel-hover:#2d3436;
+      --line:#384042; --line-soft:#282f30;
+      --text:#ede9e1; --text-dim:#9da6a3; --text-faint:#6e7775;
+      --safety:#f06a16; --safety-glow:rgba(240,106,22,.18); --safety-soft:rgba(240,106,22,.12);
+      --danger:#e5604f; --ok:#38b26f;
+      --shadow:0 4px 20px rgba(0,0,0,.35); --grid:rgba(240,106,22,.035);
+      --field:#141718; color-scheme:dark;
     }
-    h1{margin:0 0 10px; text-align:center; text-transform:uppercase; font-size:18px; letter-spacing:.02em; line-height:1.25;}
-    h3{
-      margin:18px 0 10px; font-size:15px; color:#f1f5f9;
-      border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:4px;
-      text-transform:uppercase;
+    [data-theme="light"]{
+      --bg:#f4f6f9; --panel:#ffffff; --panel-raised:#ebf0f7; --panel-hover:#e1e8f2;
+      --line:#cbd5e1; --line-soft:#e2e8f0;
+      --text:#0f172a; --text-dim:#334155; --text-faint:#64748b;
+      --safety:#d9530f; --safety-glow:rgba(217,83,15,.14); --safety-soft:rgba(217,83,15,.09);
+      --danger:#b91c1c; --ok:#15803d;
+      --shadow:0 2px 10px rgba(15,23,42,.07); --grid:rgba(217,83,15,.03);
+      --field:#ffffff; color-scheme:light;
     }
-    .grid2,.grid3{display:grid; gap:14px; align-items:end;}
-    .grid2{grid-template-columns:repeat(2,1fr);}
-    .grid3{grid-template-columns:repeat(3,1fr);}
-    label{display:block; font-size:12px; color:#cbd5f5; margin-bottom:4px;}
+    *{box-sizing:border-box;}
+    html{background:var(--bg);}
+    body{
+      min-height:100vh; display:flex; flex-direction:column;
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      line-height:1.5; -webkit-font-smoothing:antialiased;
+    }
+    pre,.pill b{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+
+    /* Topo */
+    .topbar{
+      border-bottom:1px solid var(--line);
+      background:repeating-linear-gradient(135deg,transparent,transparent 10px,var(--grid) 10px,var(--grid) 11px),var(--bg);
+    }
+    .topbar-in{
+      max-width:1500px; margin:0 auto; padding:12px 32px;
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;
+    }
+    .brand{display:flex; align-items:center; gap:12px;}
+    .brand-icon{
+      width:38px; height:38px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      border:1.5px solid var(--safety); background:var(--safety-soft); color:var(--safety);
+    }
+    h1{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:21px; line-height:1.1; margin:0; letter-spacing:.2px;}
+    h1 span{color:var(--safety);}
+    .sub{color:var(--text-dim); font-size:12.5px; margin-top:3px;}
+    .topbar-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+    .pill{
+      font-size:11px; padding:4px 9px; border:1px solid var(--line); background:var(--panel);
+      color:var(--text-dim); border-radius:2px;
+    }
+    .pill b{color:var(--text); font-weight:600;}
+    .theme-btn{
+      display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+      background:var(--panel); border:1px solid var(--line); color:var(--text);
+      padding:6px 12px; font:600 12px 'IBM Plex Sans',sans-serif; border-radius:3px; box-shadow:var(--shadow);
+      transition:border-color .15s,color .15s,background .15s;
+    }
+    .theme-btn:hover{border-color:var(--safety); color:var(--safety); background:var(--panel-raised);}
+    [data-theme="light"] .icon-sun{display:none;}
+    :root:not([data-theme="light"]) .icon-moon{display:none;}
+
+    /* Estrutura */
+    .wrap{flex:1; display:flex; width:100%; max-width:1500px; margin:0 auto; padding:16px 32px 20px;}
+    .layout{display:grid; grid-template-columns:minmax(380px,520px) minmax(0,1fr); gap:20px; align-items:stretch; flex:1; min-width:0;}
+    .painel{background:var(--panel); border:1px solid var(--line); box-shadow:var(--shadow);}
+    .painel-head{
+      display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+      padding:12px 18px; border-bottom:1px solid var(--line); background:var(--panel-raised);
+    }
+    .painel-head h2{margin:0; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--text); font-weight:700;}
+    .painelEntrada{display:flex; flex-direction:column;}
+    .painel-body{padding:14px 18px 16px; flex:1; display:flex; flex-direction:column; justify-content:flex-start; gap:12px;}
+    .grupo > h3{
+      margin:0 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line-soft);
+      font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); font-weight:600;
+    }
+    .campos{display:grid; grid-template-columns:minmax(0,1fr); gap:10px;}
+    .campos > div{display:flex; flex-direction:column; justify-content:flex-end;}
+    label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:4px;}
     input{
-      width:100%; box-sizing:border-box; padding:8px 9px; border-radius:8px;
-      border:1px solid rgba(148,163,184,.45); background:#020617; color:#e2e8f0; font-size:13px;
+      width:100%; padding:clamp(8px,1vh,12px) 10px; font:500 14px 'IBM Plex Mono',monospace; color:var(--text);
+      background:var(--field); border:1px solid var(--line); border-radius:2px;
+      transition:border-color .15s, box-shadow .15s;
     }
-    input:focus{outline:none; border-color:#38bdf8; box-shadow:0 0 0 1px rgba(56,189,248,.25);}
-    .infoBox{
-      border:1px solid rgba(148,163,184,.22);
-      background:rgba(2,6,23,.35);
-      border-radius:12px;
-      padding:12px 12px;
-      color:#cbd5f5;
-      font-size:12.5px;
-      line-height:1.45;
+    .erro{color:var(--danger); font-size:11.5px; margin-top:4px; line-height:1.3;}
+    .erro:empty{display:none;}
+    input[aria-invalid="true"]{border-color:var(--danger);}
+    input[aria-invalid="true"]:focus{box-shadow:0 0 0 3px rgba(229,96,79,.22);}
+    input:focus{outline:none; border-color:var(--safety); box-shadow:0 0 0 3px var(--safety-glow);}
+    .actions{margin-top:auto; padding-top:10px;}
+    button#calc{
+      width:100%; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+      background:var(--safety); color:#fff; border:none; padding:13px; border-radius:0;
+      font:700 14px 'IBM Plex Sans',sans-serif; letter-spacing:.3px; box-shadow:0 3px 12px var(--safety-glow);
+      transition:filter .15s, transform .05s;
     }
-    .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;}
-    button{
-      border:none; cursor:pointer; padding:9px 18px; border-radius:999px; font-weight:800;
-      background:linear-gradient(135deg,#38bdf8,#6366f1); color:white; letter-spacing:.03em;
-      box-shadow:0 10px 18px rgba(37,99,235,.35); text-transform:uppercase; font-size:12.5px;
+    button#calc:hover{filter:brightness(1.08);}
+    button#calc:active{transform:scale(.99);}
+    button#calc:focus-visible{outline:2px solid var(--text); outline-offset:2px;}
+
+    /* Resultados */
+    .resultados{display:flex; flex-direction:column; gap:14px; min-width:0;}
+    .kpi-head{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
+    .kpi-head h2{margin:0; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--safety); font-weight:700;}
+    .kpi-head span{font:500 12px 'IBM Plex Mono',monospace; color:var(--text-dim); text-align:right;}
+    .kpi-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px;}
+    .kpi{background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--safety); padding:10px 14px; box-shadow:var(--shadow);}
+    .kpi.destaque{grid-column:1 / -1;}
+    .kpi .rot{font-size:12px; color:var(--text-dim);}
+    .kpi .big{margin:4px 0 0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;}
+    .kpi .big b{font:600 30px/1 'Fraunces',Georgia,serif; color:var(--text); letter-spacing:-.01em;}
+    .kpi.destaque .big b{font-size:40px; color:var(--safety);}
+    .kpi .big em{font:500 13px 'IBM Plex Mono',monospace; font-style:normal; color:var(--text-dim);}
+    .kpi .mr{margin-top:8px; padding-top:6px; border-top:1px dashed var(--line); display:flex; justify-content:space-between; flex-wrap:wrap; gap:2px 8px; font:500 11.5px 'IBM Plex Mono',monospace; color:var(--text-dim);}
+    .kpi .mr b{color:var(--text); font-weight:600;}
+    .aviso{
+      margin-top:10px; padding:8px 12px; font-size:11.5px; color:var(--text-dim);
+      border-left:4px solid var(--safety); background:var(--safety-soft);
     }
-    .result{
-      margin-top:18px; background:#020617; border:1px solid rgba(148,163,184,.35);
-      border-radius:12px; padding:14px 14px; max-height:720px; overflow:auto;
+    .aviso b{color:var(--text);}
+    .vazio{padding:46px 20px; text-align:center; color:var(--text-faint); font-size:13px; border:1px dashed var(--line); background:var(--panel);}
+
+    .abas{overflow:hidden; flex:1; display:flex; flex-direction:column; min-height:0;}
+    .tab-nav{display:flex; gap:2px; border-bottom:1px solid var(--line); background:var(--panel-raised); padding:0 10px; flex-wrap:wrap; justify-content:center;}
+    .tab-btn{
+      background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer;
+      padding:12px 14px; font:600 12.5px 'IBM Plex Sans',sans-serif; color:var(--text-dim); white-space:nowrap;
+      transition:color .15s,border-color .15s;
     }
-    pre{margin:0; white-space:pre-wrap; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.2px; line-height:1.35;}
-    @media (max-width:900px){ .grid3,.grid2{grid-template-columns:1fr;} }
+    .tab-btn:hover{color:var(--text);}
+    .tab-btn.active{color:var(--safety); border-bottom-color:var(--safety);}
+    .tab-btn:focus-visible{outline:2px solid var(--safety); outline-offset:-2px;}
+    .tab-pane{display:none; padding:12px 18px 14px;}
+    .tab-pane.active{display:block; flex:1; min-height:0; overflow:auto;}
+    .result{overflow-x:auto; display:flex; justify-content:center;}
+    pre{margin:0; width:fit-content; max-width:100%; white-space:pre-wrap; font-size:clamp(9px,1.2vh,10.5px); line-height:1.22; color:var(--text-dim);}
+
+    @media (min-width:1101px) and (max-height:800px){
+      .painel-body{padding:10px 18px 12px; gap:8px;} .grupo > h3{margin-bottom:6px; padding-bottom:4px;}
+      .campos{gap:6px;} label{margin-bottom:2px;} input{padding-top:6px; padding-bottom:6px;} button#calc{padding:11px;}
+    }
+    @media (min-width:1101px){
+      body{height:100vh; height:100dvh; overflow:hidden;}
+      .wrap{min-height:0;}
+      .layout{min-height:0; grid-template-rows:minmax(0,1fr);}
+      .painelEntrada{min-height:0;}
+      .painelEntrada .painel-body{min-height:0; overflow:auto;}
+      .resultados{min-height:0;}
+    }
+    @media (max-width:1100px){
+      .layout{grid-template-columns:minmax(0,1fr);}
+      .abas{flex:none;} .tab-pane.active{overflow:visible;}
+      .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+    @media (max-width:600px){
+      .topbar-in{padding:14px 16px;} .wrap{padding:16px 16px 32px;}
+      h1{font-size:19px;} .painel-body{padding:14px;}
+      .kpi-grid{grid-template-columns:minmax(0,1fr);}
+      .tab-pane{padding:14px 12px;}
+      pre{font-size:clamp(8px,2vw,12px); white-space:pre;}
+    }
+    @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>CALCULADORA DE CAPACIDADE DE CARGA PARA ANDAIMES EM TUBO ROLL</h1>
-
-      <h3>DADOS DE ENTRADA</h3>
-
-      <div class="grid2">
-        <div>
-          <label>Comprimento Efetivo do Pontalete Mais Desfavorecido [m]</label>
-          <input id="Cp" type="number" step="0.01" value="2.00"/>
-        </div>
-        <div>
-          <label>Quantidade de Pontaletes</label>
-          <input id="Np" type="number" step="1" value="4"/>
-        </div>
-      </div>
-
-      <div class="grid2" style="margin-top:14px">
-        <div>
-          <label>Comprimento Efetivo da Longarina Mais Desfavorecida [m]</label>
-          <input id="Cl" type="number" step="0.01" value="2.00"/>
-        </div>
-        <div>
-          <label>Quantidade de Longarinas</label>
-          <input id="Nl" type="number" step="1" value="4"/>
-        </div>
-      </div>
-
-      <div class="grid3" style="margin-top:14px">
-        <div>
-          <label>Quantidade de Abraçadeiras Sob Carga</label>
-          <input id="Na" type="number" step="1" value="4"/>
-        </div>
-        <div>
-          <label>Área efetiva do Tablado [m²]</label>
-          <input id="At" type="number" step="0.01" value="4.00"/>
-        </div>
-        <div>
-          <label>Fator de Segurança do Projeto</label>
-          <input id="fs" type="number" step="0.01" value="0.85"/>
-        </div>
-      </div>
-
-      <h3 style="margin-top:22px">DADOS DE CÁLCULOS INTERNOS</h3>
-      <div class="infoBox">
-        Pranchão de Madeira com Espessura Mínima de 25mm<br/>
-        Tubo Roll de 1.1/2" em Aço Galvanizado SAE 1020<br/>
-        (D) Diâmetro Externo do Tubo: 48,3 mm<br/>
-        (d) Diâmetro Interno do Tubo: 42,3 mm<br/>
-        (e) Espessura do Tubo: 3,0 mm<br/>
-        (E) Módulo de Elasticidade do Aço 1020: 210.000 MPa<br/>
-        (fy) Limite de Escoamento do Aço 1020: 285 MPa
-      </div>
-
-      <div class="actions">
-        <button id="calc">Calcular</button>
-      </div>
-
-      <div class="result" id="out" style="display:none">
-        <pre id="txt"></pre>
-      </div>
+<div class="topbar">
+ <div class="topbar-in">
+  <div class="brand">
+    <div class="brand-icon" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M4 3v18M20 3v18M4 8h16M4 14h16M4 20h16M4 8l16 6M20 8L4 14"/></svg>
+    </div>
+    <div>
+      <h1>Andaime <span>Tubo Roll</span> · Capacidade de Carga</h1>
+      <div class="sub">Cálculo da carga máxima de trabalho por tablado: pontaletes, longarinas, abraçadeiras e pranchões</div>
     </div>
   </div>
+  <div class="topbar-right">
+    <button class="theme-btn" id="theme-btn" type="button" title="Alternar entre tema claro e escuro">
+      <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span id="theme-btn-text">Tema claro</span>
+    </button>
+  </div>
+ </div>
+</div>
+
+<div class="wrap">
+  <div class="layout">
+
+    <section class="painel painelEntrada" aria-label="Dados de entrada">
+      <div class="painel-head"><h2>Dados de entrada</h2></div>
+      <div class="painel-body">
+
+        <div class="grupo">
+          <div class="campos">
+            <div><label for="Cp">Comprimento Efetivo do Pontalete Mais Desfavorecido [m]</label><input id="Cp" type="number" step="0.01" value="2.00"/><div class="erro" id="e-Cp"></div></div>
+            <div><label for="Np">Quantidade de Pontaletes</label><input id="Np" type="number" step="1" value="4"/><div class="erro" id="e-Np"></div></div>
+          </div>
+        </div>
+
+        <div class="grupo">
+          <div class="campos">
+            <div><label for="Cl">Comprimento Efetivo da Longarina Mais Desfavorecida [m]</label><input id="Cl" type="number" step="0.01" value="2.00"/><div class="erro" id="e-Cl"></div></div>
+            <div><label for="Nl">Quantidade de Longarinas</label><input id="Nl" type="number" step="1" value="4"/><div class="erro" id="e-Nl"></div></div>
+          </div>
+        </div>
+
+        <div class="grupo">
+          <div class="campos">
+            <div><label for="Na">Qtd. de Abraçadeiras Sob Carga</label><input id="Na" type="number" step="1" value="4"/><div class="erro" id="e-Na"></div></div>
+            <div><label for="At">Área efetiva do Tablado [m²]</label><input id="At" type="number" step="0.01" value="4.00"/><div class="erro" id="e-At"></div></div>
+            <div><label for="fs">Fator de Segurança do Projeto</label><input id="fs" type="number" step="0.01" value="0.85"/><div class="erro" id="e-fs"></div></div>
+          </div>
+        </div>
+
+        <div class="actions"><button id="calc" type="button">Calcular</button></div>
+      </div>
+    </section>
+
+    <section class="resultados" aria-label="Resultados">
+      <div id="kpis">
+        <div class="kpi-head"><h2>Resultados</h2></div>
+        <div class="kpi-grid">
+          <div class="kpi destaque"><div class="rot">Carga máxima de trabalho por tablado</div><div class="big"><b id="k-cmax">--</b><em>kgf</em></div><div class="mr"><span>Lotação máxima por tablado: <b id="k-lot">--</b></span></div></div>
+          <div class="kpi"><div class="rot">Pontaletes (flambagem)</div><div class="big"><b id="k-ppt">--</b><em>kgf</em></div><div class="mr"><span>Unitário <b id="k-ppu">--</b></span><span>Qtd <b id="k-np">--</b></span></div></div>
+          <div class="kpi"><div class="rot">Longarinas (momento / flecha)</div><div class="big"><b id="k-plt">--</b><em>kgf</em></div><div class="mr"><span>Momento <b id="k-plm">--</b></span><span>Flecha <b id="k-plf">--</b></span></div></div>
+          <div class="kpi"><div class="rot">Abraçadeiras</div><div class="big"><b id="k-pabt">--</b><em>kgf</em></div><div class="mr"><span>Unitária <b id="k-pab">--</b></span><span>Qtd <b id="k-na">--</b></span></div></div>
+          <div class="kpi"><div class="rot">Tablado (pranchões)</div><div class="big"><b id="k-pt">--</b><em>kgf</em></div><div class="mr"><span><b id="k-ppm">--</b> kgf/m²</span><span><b id="k-at">--</b> m²</span></div></div>
+        </div>
+        <div class="aviso"><b>Estritamente proibido extrapolar a carga máxima de trabalho definida em projeto.</b><br>Esta informação deve estar clara para todos os colaboradores envolvidos nas atividades de uso do andaime.<br>Nenhum profissional tem autonomia para mudar este limite, salvo o projetista responsável pelo projeto.</div>
+      </div>
+
+      <div class="painel abas">
+        <div class="tab-nav" role="tablist" aria-label="Detalhamento">
+          <button class="tab-btn active" role="tab" id="tb-memorial" aria-controls="tab-memorial" aria-selected="true" type="button">Memória de Cálculo</button>
+        </div>
+
+        <div class="tab-pane active" role="tabpanel" id="tab-memorial" aria-labelledby="tb-memorial">
+          <div class="vazio" id="vazio">Preencha os dados de entrada e clique em <b>Calcular</b> para gerar a memória de cálculo.</div>
+          <div class="result" id="out" style="display:none"><pre id="txt"></pre></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
 
 <script>
+//#region Cálculo
 function n(v){ const x = parseFloat(v); return isFinite(x)?x:0; }
 function ni(v){ const x = parseInt(v,10); return isFinite(x)?x:0; }
 function fmt(x,dec=2){
@@ -135,8 +276,44 @@ const fy_MPa = 285;    // MPa
 const Pab = 750;       // kgf
 const Ppm = 175;       // kgf/m²
 const delta_factor = 0.005; // δmax = L * 0,005
+//#region Validação
+const REGRAS = {
+  Cp: { tipo: 'comp', rot: 'comprimento' }, Cl: { tipo: 'comp', rot: 'comprimento' },
+  Np: { tipo: 'int' }, Nl: { tipo: 'int' }, Na: { tipo: 'int' },
+  At: { tipo: 'area' }, fs: { tipo: 'fs' }
+};
+const COMP_MIN = 0.30; // m
+function validarEntradas(){
+  const erros = [];
+  for (const [id, r] of Object.entries(REGRAS)) {
+    const bruto = document.getElementById(id).value.trim();
+    const v = bruto === '' ? NaN : Number(bruto);
+    let msg = '';
+    if (!isFinite(v)) msg = 'Informe um valor numérico.';
+    else if (r.tipo === 'comp' && v < COMP_MIN) msg = `Informe um comprimento maior ou igual a ${fmt(COMP_MIN,2)} m.`;
+    else if (r.tipo === 'int' && (v < 1 || !Number.isInteger(v))) msg = 'Informe um número inteiro maior ou igual a 1.';
+    else if (r.tipo === 'area' && v <= 0) msg = 'Informe uma área maior que 0.';
+    else if (r.tipo === 'fs' && (v <= 0 || v > 1)) msg = 'Informe um fator maior que 0 e no máximo 1,00.';
+    document.getElementById('e-' + id).textContent = msg;
+    document.getElementById(id).setAttribute('aria-invalid', msg ? 'true' : 'false');
+    if (msg) erros.push(id);
+  }
+  return erros;
+}
+Object.keys(REGRAS).forEach(id => document.getElementById(id).addEventListener('input', () => {
+  document.getElementById('e-' + id).textContent = '';
+  document.getElementById(id).setAttribute('aria-invalid', 'false');
+}));
+function limparResultados(){
+  document.querySelectorAll('#kpis [id^="k-"]').forEach(e => { e.textContent = '--'; });
+  document.getElementById('out').style.display = 'none';
+  document.getElementById('vazio').style.display = '';
+}
+//#endregion Validação
 
-document.getElementById('calc').addEventListener('click', ()=>{
+function calcular(){
+  const erros = validarEntradas();
+  if (erros.length) { limparResultados(); document.getElementById(erros[0]).focus(); return; }
   const Cp = n(document.getElementById('Cp').value);
   const Np = Math.max(1, ni(document.getElementById('Np').value));
   const Cl = n(document.getElementById('Cl').value);
@@ -164,7 +341,7 @@ document.getElementById('calc').addEventListener('click', ()=>{
   // 2) Pontaletes
   const lambda = round2((Cp*1000.0) / r_mm);
   const lambda0 = round2((lambda/Math.PI) * Math.sqrt(fy_MPa/E_MPa));
-  const chi = round2(Math.pow(0.658, lambda0*lambda0));
+  const chi = round2(lambda0 <= 1.5 ? Math.pow(0.658, lambda0*lambda0) : 0.877/(lambda0*lambda0)); // NBR 8800: 0,658^(λ0²) até λ0=1,5; 0,877/λ0² acima
 
   const Ppu_kgf = A_cm2 * fy_kgfcm2 * chi * fs;
   const Ppt_kgf = Ppu_kgf * Np * fs;
@@ -189,6 +366,8 @@ document.getElementById('calc').addEventListener('click', ()=>{
   const Pt_kgf = Ppm * At * fs;
 
   const Cmax = Math.min(Ppt_kgf, Plt_kgf, Pabt_kgf, Pt_kgf);
+  const lotacao = Math.floor(Cmax / 150);  // lotação máxima = carga máxima / 150 kgf por pessoa (arredondada para baixo)
+  const lotacaoTxt = `${String(lotacao).padStart(2,'0')} ${lotacao === 1 ? 'PESSOA' : 'PESSOAS'}`;
 
   let out = `Tipologia:\n`;
   out += `Pranchão de Madeira com Espessura Mínima de 25mm\n`;
@@ -205,7 +384,7 @@ document.getElementById('calc').addEventListener('click', ()=>{
 
   out += `(A) Área de Secção Transversal ((π/4)*(D^2-d^2)): ${fmt(A_cm2,2)} cm²\n`;
   out += `(I) Momento de Inércia ((π/64)*(D^4−d^4)): ${fmt(I_cm4,2)} cm4\n`;
-  out += `(W) Módulo de Resistência Elástico ((π/32*D)*(D^4−d^4)): ${fmt(W_cm3,2)} cm³\n`;
+  out += `(W) Módulo de Resistência Elástico ((π/(32*D))*(D^4−d^4)): ${fmt(W_cm3,2)} cm³\n`;
   out += `(r) Raio de Giração ((√(D^2+d^2))/4): ${fmt(r_mm,2)}mm\n\n`;
 
   out += `Carga Admissível nos Pontaletes (Compressão/Flambagem)\n`;
@@ -213,11 +392,11 @@ document.getElementById('calc').addEventListener('click', ()=>{
   out += `(Np) Quantidade de Pontaletes: ${fmt0(Np)}\n`;
   out += `(λ) Esbeltez (Cp/r): ${fmt(lambda,2)}\n`;
   out += `(λ0) Esbeltez Reduzida ((λ/π)*(√(fy/E))): ${fmt(lambda0,2)}\n`;
-  out += `(χ) Fator de Redução por Flambagem (0,658^(λ0^2): ${fmt(chi,2)}\n`;
+  out += `(χ) Fator de Redução por Flambagem (λ0≤1,5: 0,658^(λ0^2); λ0>1,5: 0,877/λ0^2): ${fmt(chi,2)}\n`;
   out += `(Ppu) Carga Admissível no Pontalete Unitário (A*fy*χ*fs): ${fmt0(Ppu_kgf)} kgf\n`;
   out += `(Ppt) Carga Admissível no Pontalete Total (Ppu*Np*fs): ${fmt0(Ppt_kgf)} kgf\n\n`;
 
-  out += `Carga Admissível nas Longarinas (Cisalhamento/Flecha)\n`;
+  out += `Carga Admissível nas Longarinas (Momento Fletor/Flecha)\n`;
   out += `(Cl) Comprimento Efetivo da Longarina Mais Desfavorecida: ${fmt(Cl,2)} m\n`;
   out += `(Nl) Quantidade de Longarinas: ${fmt0(Nl)}\n`;
   out += `(Plmfu) Carga Admissível na Longarina por Momento Fletor Unitário ((1/Cl)*4*W*fy*fs): ${fmt0(Plmfu_kgf)} kgf\n`;
@@ -236,15 +415,65 @@ document.getElementById('calc').addEventListener('click', ()=>{
   out += `(Pt) Carga Admissível no Tablado (Ppm*At*fs): ${fmt0(Pt_kgf)} kgf\n\n`;
 
   out += `CARGA MÁXIMA DE TRABALHO POR TABLADO: ${fmt0(Cmax)} kgf\n`;
-  out += `LOTAÇÃO MÁXIMA POR TABLADO: 02 PESSOAS\n\n`;
+  out += `LOTAÇÃO MÁXIMA POR TABLADO: ${lotacaoTxt}\n\n`;
 
   out += `Estritamente proibido extrapolar a carga máxima de trabalho definida em projeto\n`;
   out += `Esta informação deve estar clara para todos os colaboradores envolvidos nas atividades de uso do andaime\n`;
   out += `Nenhum profissional tem autonomia para mudar este limite, salvo o projetista responsável pelo projeto\n`;
-
   document.getElementById('txt').textContent = out;
-  document.getElementById('out').style.display='block';
-});
+  document.getElementById('out').style.display = 'flex';
+  document.getElementById('vazio').style.display = 'none';
+
+  //#region KPIs
+  const set = (id, v) => { document.getElementById(id).textContent = v; };
+  set('k-cmax', fmt0(Cmax)); set('k-lot', lotacaoTxt.toLowerCase());
+  set('k-ppt', fmt0(Ppt_kgf)); set('k-ppu', fmt0(Ppu_kgf)); set('k-np', fmt0(Np));
+  set('k-plt', fmt0(Plt_kgf)); set('k-plm', fmt0(Plmft_kgf)); set('k-plf', fmt0(Plflt_kgf));
+  set('k-pabt', fmt0(Pabt_kgf)); set('k-pab', fmt0(Pab)); set('k-na', fmt0(Na));
+  set('k-pt', fmt0(Pt_kgf)); set('k-ppm', fmt0(Ppm)); set('k-at', fmt(At, 2));
+  //#endregion KPIs
+}
+document.getElementById('calc').addEventListener('click', calcular);
+//#endregion Cálculo
+
+//#region Abas
+(function(){
+  const abas = [...document.querySelectorAll('.tab-btn')];
+  function ativar(btn){
+    abas.forEach(b => {
+      const on = b === btn;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+      document.getElementById(b.getAttribute('aria-controls')).classList.toggle('active', on);
+    });
+  }
+  abas.forEach((b, i) => {
+    b.addEventListener('click', () => ativar(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const prox = abas[(i + (e.key === 'ArrowRight' ? 1 : abas.length - 1)) % abas.length];
+      ativar(prox); prox.focus(); e.preventDefault();
+    });
+  });
+})();
+//#endregion Abas
+
+//#region Tema
+function atualizarTextoTema(){
+  const claro = document.documentElement.getAttribute('data-theme') === 'light';
+  document.getElementById('theme-btn-text').textContent = claro ? 'Tema escuro' : 'Tema claro';
+}
+function alternarTema(){
+  const claro = document.documentElement.getAttribute('data-theme') === 'light';
+  const novo = claro ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', novo);
+  try { localStorage.setItem('andaime-tema', novo); } catch (e) {}
+  atualizarTextoTema();
+}
+document.getElementById('theme-btn').addEventListener('click', alternarTema);
+atualizarTextoTema();
+//#endregion Tema
 </script>
 </body>
 </html>
